@@ -1,6 +1,30 @@
 version: '3'
 
 services:
+  apache:
+    build: docker/apache
+    container_name: app_apache
+    ports:
+      - 8080:80
+    volumes:
+      - ./docker/config/vhosts:/etc/apache2/sites-enabled
+      - .:/home/wwwroot/htdocs
+    depends_on:
+      - php
+  php:
+    container_name: app_php
+    build:  docker/php
+    depends_on:
+      - database
+    environment:
+      - APP_ENV=dev
+      - APP_DEBUG=1
+      - APP_SECRET=${APP_SECRET}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:${POSTGRES_PORT}/${POSTGRES_DB}
+      - PHP_DATE_TIMEZONE=EUROPE/PARIS
+    volumes:
+      - .:/home/wwwroot/htdocs
+
 ###> doctrine/doctrine-bundle ###
   database:
     image: postgres:${POSTGRES_VERSION:-15}-alpine
@@ -11,8 +35,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-app}
     volumes:
       - db-data:/var/lib/postgresql/data:rw
-      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
-      # - ./docker/db/data:/var/lib/postgresql/data:rw
 ###< doctrine/doctrine-bundle ###
 
 volumes:

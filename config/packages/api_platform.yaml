@@ -1,0 +1,3 @@
+api_platform:
+  enable_swagger_ui: false
+  enable_re_doc: false
